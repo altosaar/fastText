@@ -10,7 +10,7 @@ make
 ./fasttext sentence_context -input "${DATADIR}"/dat/processed/train -output "${RESULTDIR}"/model -lr 0.025 -dim 100 \
   -ws 0 -epoch 1 -minCount 5 -neg 5 -loss ns -bucket 2000000 \
   -wordNgrams 0 \
-  -minn 0 -maxn 0 -thread 8 -t 1 -lrUpdateRate 100
+  -minn 0 -maxn 0 -thread 8 -t 1 -lrUpdateRate 100 -saveOutput 1
 
 tail -n+3 $RESULTDIR/model.vec > $RESULTDIR/vectors.txt
 
