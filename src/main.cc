@@ -20,6 +20,7 @@ void printUsage() {
     << "The commands supported by fasttext are:\n\n"
     << "  supervised          train a supervised classifier\n"
     << "  test                evaluate a supervised classifier\n"
+    << "  rec_eval            evaluate a recommendation engine\n"
     << "  predict             predict most likely labels\n"
     << "  predict-prob        predict most likely labels with probabilities\n"
     << "  skipgram            train a skipgram model\n"
@@ -34,6 +35,15 @@ void printTestUsage() {
     << "usage: fasttext test <model> <test-data> [<k>]\n\n"
     << "  <model>      model filename\n"
     << "  <test-data>  test data filename (if -, read from stdin)\n"
+    << "  <k>          (optional; 1 by default) predict top k labels\n"
+    << std::endl;
+}
+
+void printRecEvalUsage() {
+  std::cout
+    << "usage: fasttext rec_eval <model> <test-data> [<k>]\n\n"
+    << "  <model>      model filename\n"
+    << "  <test-data>  test data filename\n"
     << "  <k>          (optional; 1 by default) predict top k labels\n"
     << std::endl;
 }
@@ -86,6 +96,29 @@ void test(int argc, char** argv) {
     fasttext.test(ifs, k);
     ifs.close();
   }
+  exit(0);
+}
+
+void rec_eval(int argc, char** argv) {
+  int32_t k;
+  if (argc == 4) {
+    k = 1;
+  } else if (argc == 5) {
+    k = atoi(argv[4]);
+  } else {
+    printRecEvalUsage();
+    exit(EXIT_FAILURE);
+  }
+  FastText fasttext;
+  fasttext.loadModel(std::string(argv[2]));
+  std::string infile(argv[3]);
+  std::ifstream ifs(infile);
+  if (!ifs.is_open()) {
+    std::cerr << "Train or Test file cannot be opened!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  fasttext.rec_eval(ifs, k);
+  ifs.close();
   exit(0);
 }
 
@@ -158,6 +191,8 @@ int main(int argc, char** argv) {
     train(argc, argv);
   } else if (command == "test") {
     test(argc, argv);
+  } else if (command == "rec_eval") {
+    rec_eval(argc, argv);
   } else if (command == "print-vectors") {
     printVectors(argc, argv);
   } else if (command == "print-ngrams") {

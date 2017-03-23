@@ -317,8 +317,15 @@ int32_t Dictionary::getLine(std::istream& in,
 std::string Dictionary::getLabel(int32_t lid) const {
   assert(lid >= 0);
   assert(lid < nlabels_);
-  return words_[lid + nwords_].word;
+  return words_[lid + nwords_].word.substr(9); //remove the __label__ prefix
 }
+
+int32_t Dictionary::labelId2WordId(int32_t lid) const {
+  std::string w = getLabel(lid);
+  int32_t h = find(w);
+  return word2int_[h];
+}
+
 
 void Dictionary::save(std::ostream& out) const {
   out.write((char*) &size_, sizeof(int32_t));

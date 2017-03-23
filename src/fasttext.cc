@@ -198,6 +198,43 @@ void FastText::test(std::istream& in, int32_t k) {
   std::cout << "Number of examples: " << nexamples << std::endl;
 }
 
+void FastText::rec_eval(std::istream& in, int32_t k) {
+  dict_->readFromFile(in); // add labels in test file to dict
+  in.clear();
+  in.seekg(std::streampos(0));
+  int32_t nexamples = 0, nlabels = 0;
+  double precision = 0.0;
+  std::vector<int32_t> line, labels;
+
+  while (in.peek() != EOF) {
+    dict_->getLine(in, line, labels, model_->rng);
+    /* for (auto it = labels.cbegin(); it != labels.cend(); it++) { */
+    /*   std::cout << "Label: " << dict_->getLabel(*it) << std::endl; */
+    /* } */
+    dict_->addNgrams(line, args_->wordNgrams);
+    if (labels.size() > 0 && line.size() > 0) {
+      std::vector<std::pair<real, int32_t>> modelPredictions;
+      model_->predict(line, k, modelPredictions);
+      for (int32_t i = 0; i < labels.size(); i++) {
+        labels[i] = dict_->labelId2WordId(labels[i]);
+      }
+      for (auto it = modelPredictions.cbegin(); it != modelPredictions.cend(); it++) {
+        /* std::cout << "prediction: " << it->first << " " << it->second */
+        /*   << " " << dict_->getWord(it->second) << std::endl; */
+        if (std::find(labels.begin(), labels.end(), it->second) != labels.end()) {
+          precision += 1.0;
+        }
+      }
+      nexamples++;
+      nlabels += labels.size();
+    }
+  }
+  std::cout << std::setprecision(3);
+  std::cout << "P@" << k << ": " << precision / (k * nexamples) << std::endl;
+  std::cout << "R@" << k << ": " << precision / nlabels << std::endl;
+  std::cout << "Number of users: " << nexamples << std::endl;
+}
+
 void FastText::predict(std::istream& in, int32_t k,
                        std::vector<std::pair<real,std::string>>& predictions) const {
   std::vector<int32_t> words, labels;
